@@ -23,12 +23,12 @@ npm install efrix
 const { App } = require('efrix');
 const app = new App({ port: 3000, autoRedirect: true, logs: { enabled: true } });
 
-app.Get('/', (req, res) => {
-    res.send('Hello, world!');
+app.Get('/', (rq, rs) => {
+    rs.send('Hello, world!');
 });
 
-app.Post('/data', (req, res) => {
-    res.json({ received: req.body });
+app.Post('/data', (rq, rs) => {
+    rs.json({ received: req.body });
 });
 ```
 
