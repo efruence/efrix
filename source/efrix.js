@@ -15,9 +15,11 @@ class App {
    * @param {string} [options.logs.dir]
    * @param {number} [options.maxRequest]
    * @param {number} [options.maxRequestTime]
+   * @param {string} [options.static]
    */
   constructor(options = {}) {
-    const routes = { GET: {}, POST: {} };
+    const routes = { GET: {}, POST: {}, PUT: {}, DELETE: {} };
+    const staticDir = options.static || path.join(__dirname, 'frontend');
     let activeRequests = 0;
 
     if (options.logs?.enabled) {
@@ -55,6 +57,16 @@ class App {
           }
           response.status(500).send('Internal Server Error');
         }
+      } else if (staticDir) {
+        const filePath = path.join(staticDir, url === '/' ? 'index.html' : url);
+        fs.readFile(filePath, 'utf-8', (err, data) => {
+          if (err) {
+            response.status(404).send('Not Found');
+          } else {
+            response.setHeader('Content-Type', 'text/html; charset=utf-8');
+            response.send(data);
+          }
+        });
       } else {
         response.status(404).send('Not Found');
       }
@@ -103,6 +115,43 @@ class App {
      */
     this.Post = (path, callback) => {
       routes.POST[path] = callback;
+    };
+
+     /** 
+     * @param {string} path 
+     * @param {(rq: Request, rs: Response) => void} callback 
+     */
+     this.Put = (path, callback) => {
+      routes.PUT[path] = callback;
+    };
+
+    /** 
+     * @param {string} path 
+     * @param {(rq: Request, rs: Response) => void} callback 
+     */
+    this.Delete = (path, callback) => {
+      routes.DELETE[path] = callback;
+    };
+
+    /**
+     * @param {string} [file='index.html']
+     */
+    this.static = (file = 'index.html') => {
+      return (rq, rs) => {
+        if (!staticDir) {
+          rs.status(500).send('Static directory is not defined.');
+          return;
+        }
+        const filePath = path.join(staticDir, file);
+        fs.readFile(filePath, 'utf-8', (err, data) => {
+          if (err) {
+            rs.status(404).send('File Not Found');
+          } else {
+            rs.setHeader('Content-Type', 'text/html; charset=utf-8');
+            rs.send(data);
+          }
+        });
+      };
     };
   }
 }
