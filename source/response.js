@@ -20,10 +20,11 @@ class Response {
         if (typeof data === 'object') {
             this.json(data);
         } else {
-            this.raw.setHeader('Content-Type', 'text/plain');
+            const contentType = data.trim().startsWith("<") ? "text/html" : "text/plain";
+            this.raw.setHeader("Content-Type", contentType);
             this.raw.end(data);
         }
-    }
+    }    
 
     setHeader(key, value) {
         this.raw.setHeader(key, value);
